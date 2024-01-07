@@ -209,6 +209,7 @@ enum maxargs
 			 Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object)
 
 EXFUN(Feq, 2); // for error C2065: 'Feq': undeclared identifier
+EXFUN(Fmy_eq, 2);
 
 #define lisp_h_XLI(o) (o)
 #define XLI(o) lisp_h_XLI (o)
@@ -217,6 +218,28 @@ EXFUN(Feq, 2); // for error C2065: 'Feq': undeclared identifier
 
 #define Qt (Lisp_Object)1
 #define Qnil (Lisp_Object)0
+
+/*
+static union Aligned_Lisp_Subr Seq =
+{
+  {
+    { PVEC_SUBR << PSEUDOVECTOR_AREA_BITS }, // struct Lisp_Subr::header
+    {.a2 = Feq },                            // struct Lisp_Subr::function
+    2,                                       // struct Lisp_Subr::min_args
+    2,                                       // struct Lisp_Subr::max_args
+    "eq",                                    // struct Lisp_Subr::symbol_name
+    {0},                                     // struct Lisp_Subr::intspec
+    0                                        // struct Lisp_Subr::doc
+  }
+};
+
+Lisp_Object Feq(Lisp_Object obj1, Lisp_Object obj2)
+{
+  if (EQ(obj1, obj2))
+    return Qt;
+  return Qnil;
+}
+*/
 
 // error C7555: use of designated initializers requires at least '/std:c++20'
 DEFUN("eq", Feq, Seq, 2, 2, 0,
@@ -229,7 +252,21 @@ attributes: const)
   return Qnil;
 }
 
+// DEFUN("my-eq", ...)
+static union Aligned_Lisp_Subr Smy_eq =
+{ {{ PVEC_SUBR << PSEUDOVECTOR_AREA_BITS },
+  {.a2 = Fmy_eq },
+  2, 2, "my-eq", {0}, 0} };
+Lisp_Object Fmy_eq(Lisp_Object obj1, Lisp_Object obj2)
+{
+  if (EQ(obj1, obj2))
+    return Qt;
+  return Qnil;
+}
+
 int main() {
   printf("Feq(0, 0): %s\n", Feq(0, 0) ? "true" : "false");
   printf("Feq(0, 1): %s\n", Feq(0, 1) ? "true" : "false");
+  printf("Fmy_eq(11, 11): %s\n", Fmy_eq(0, 0) ? "true" : "false");
+  printf("Fmy_eq(10, 11): %s\n", Fmy_eq(0, 1) ? "true" : "false");
 }
